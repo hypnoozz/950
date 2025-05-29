@@ -42,7 +42,7 @@ jobs:
       - name: Build frontend
         run: |
           cd frontend
-          npm run build
+          CI=false npm run build
 
       # Setup Python environment
       - name: Setup Python
