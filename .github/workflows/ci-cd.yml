@@ -3,10 +3,10 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main  # 监控main分支的推送
+      - main
   pull_request:
     branches:
-      - main  # 监控对main分支的拉取请求
+      - main
 
 jobs:
   build:
@@ -19,12 +19,20 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'  # 使用Node.js 16版本
+          node-version: '16'
 
-      - name: Install dependencies
+      - name: Cache Node.js modules
+        uses: actions/cache@v2
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install frontend dependencies with legacy peer deps
         run: |
           cd frontend
-          npm install
+          npm install --legacy-peer-deps
 
       - name: Build frontend
         run: |
@@ -34,7 +42,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'  # 使用Python 3.9版本
+          python-version: '3.9'
+
+      - name: Cache Python packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install Python dependencies
         run: |
@@ -53,5 +69,4 @@ jobs:
 
       - name: Deploy to server
         run: |
-          # 这里可以添加部署到服务器的命令
           echo "Deploying to server..."
