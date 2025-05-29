@@ -1,0 +1,125 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 智能建房预约系统 - Cursor代码生成配置
+一、项目核心规范
+1. 项目基础信息
+名称：智能建房预约系统
+定位：面向建房服务的在线预约平台，支持多角色访问与高效管理
+核心特性：科技感 UI、图片上传、无外键数据库设计、模拟支付流程
+二、技术栈与架构
+1. 前端（React + Tailwind CSS）
+开发规范：
+语言：英文界面（默认），组件命名采用 PascalCase（如BookingCalendar）
+状态管理：局部状态用useState，复杂逻辑引入Zustand
+图片处理：使用react-dropzone实现拖拽上传，支持多图预览
+科技感设计：
+主色调：#165DFF（导航栏 / 主按钮），辅助色 #00F0FF（成功提示）
+动效：输入框聚焦时边框渐变发光，卡片切换带横向滑动过渡
+字体：Inter 字体（系统级无衬线字体，提升阅读效率）
+2. 后端（Django + MySQL）
+数据库设计（无外键，全冗余）：
+命名规范：蛇形命名（user_id/booking_date）
+核心模型冗余策略：
+Booking表直接存储user_username/user_role，避免联表查询
+User表冗余member_expire_date（会员到期日），无需关联会员表
+性能优化：
+接口缓存：热门服务列表缓存 30 分钟（使用 Django Cache 框架）
+数据库索引：为booking_date/user_id添加组合索引
+三、业务功能模块
+1. 用户系统（全角色通用）
+1.1 基础功能
+注册 / 登录：
+注册需验证邮箱 / 手机号唯一性，登录支持 JWT 认证（有效期 7 天）
+非会员注册即视为普通用户，可随时升级为会员
+个人中心：
+显示基本资料、头像上传（支持 PNG/JPG，自动压缩至 2MB 以内）
+预约历史：按状态分类（进行中 / 已完成 / 已取消），支持时段筛选
+1.2 会员专属功能（月度 / 年度）
+权益说明：
+月度会员：每月免费预约 2 次设计咨询，超出后模拟支付享 9 折
+年度会员：全年免费预约 12 次施工服务，材料选购模拟折扣 95 折
+会员状态实时显示：剩余免费次数、到期日（精确到天）
+续费流程：
+模拟支付：点击续费后显示 "支付成功" 弹窗，状态自动延期
+支持套餐降级（年度→月度），剩余天数按比例折算免费次数
+1.3 非会员功能
+单次预约：
+无需注册即可提交预约（需填写联系信息），模拟支付步骤简化为 "确认预约"
+价格透明：预约前显示基础单价，对比会员折扣（引导注册转化）
+临时用户管理：
+临时预约记录绑定手机号，7 天内可凭短信验证码查询状态
+2. 预约核心流程
+2.1 预约提交
+流程：选择服务类型（设计 / 施工 / 材料）→ 选择时段（实时显示可用状态）→ 填写需求→ 模拟支付确认
+关键点：
+时段锁定：提交后时段状态变为 "审核中"，防止重复预约
+会员自动识别：登录后根据user_role字段自动应用折扣规则
+2.2 预约管理
+普通用户：可在预约开始前 48 小时取消，取消后释放名额（状态变为 "已取消"）
+管理员：批量审核功能（勾选多个预约一键批准 / 拒绝），拒绝需填写原因（自动发送邮件通知）
+3. 管理员后台
+3.1 核心功能
+数据看板：
+实时显示今日预约量、会员占比、热门服务 TOP3（柱状图可视化）
+导出预约数据：支持 Excel 下载，包含用户信息、时段、审核状态
+系统配置：
+服务管理：新增 / 编辑服务类型（设置基础价格、每日可预约时段上限）
+会员规则：配置月度 / 年度会员免费次数、模拟折扣比例（无需真实支付接口）
+3.2 审核机制
+智能审核建议：对重复时段预约、会员超次数预约自动标记为 "待人工审核"
+状态同步：审核通过后，预约状态更新为 "已批准"，用户端显示模拟支付成功提示
+四、模型设计（无外键版）
+1. 用户表（User）
+字段名	类型	说明	冗余目的
+id	自增主键	唯一标识	-
+username	CharField(150)	用户名（唯一）	快速显示用户名
+email	EmailField	邮箱（唯一）	接收通知
+phone	CharField(20)	手机号（可选）	短信通知
+role	CharField	角色（admin/monthly/annual/non_member）	权限判断直接取值
+member_expire_date	DateField	会员到期日（冗余）	避免联表查询会员状态
+remaining_free_bookings	PositiveIntegerField	剩余免费次数（冗余）	快速计算会员可用权益
+2. 预约表（Booking）
+字段名	类型	说明	冗余目的
+id	自增主键	唯一标识	-
+user_id	IntegerField	用户 ID（冗余）	快速关联用户基本信息
+username	CharField(150)	用户名（冗余）	无需联表显示用户名
+user_role	CharField	用户角色（冗余）	直接判断会员折扣规则
+service_type	CharField(50)	服务类型（设计 / 施工 / 材料）	-
+booking_datetime	DateTimeField	预约时间（精确到分钟）	-
+status	CharField	状态（pending/approved/rejected/cancelled）	流程跟踪
+simulated_payment_status	BooleanField	模拟支付状态（默认 True）	简化支付逻辑
+3. 服务表（Service）
+字段名	类型	说明	冗余目的
+id	自增主键	唯一标识	-
+name	CharField(200)	服务名称（如 "别墅设计咨询"）	-
+description	TextField	服务详情	-
+base_price	DecimalField	基础单价（非会员价格）	-
+monthly_discount	DecimalField	月度会员折扣（如 0.9 表示 9 折）	冗余存储折扣规则
+annual_discount	DecimalField	年度会员折扣（如 0.95 表示 95 折）	避免联表查询折扣策略
+main_image	ImageField	主图（上传路径：services/main/）	服务展示
+
+五、前端组件清单
+1. 核心业务组件
+组件名称	功能描述	技术实现
+TimeSlotPicker	时段选择组件（带实时可用状态）	使用 Dayjs 库处理时间，Tailwind 动态样式标记状态
+MemberBenefitBadge	会员权益显示（剩余次数 / 到期日）	条件渲染不同颜色标签，悬停显示权益详情
+AdminBulkAction	预约批量审核按钮组	按钮组联动勾选列表，调用后端批量 API
+SimulatedPaymentModal	模拟支付确认弹窗	包含 "确认预约" 按钮，提交后显示成功动画
+七、CI/CD 自动化流程
+1. 构建阶段
+前端：npm run build && npm run image-optimize（压缩图片至 80% 质量）
+后端：python manage.py makemigrations --check && python manage.py migrate
+容器化：Docker 镜像分层构建（先安装依赖，再复制代码）
+2. 测试阶段
+单元测试：npm test（前端 Jest 测试）+ python manage.py test（后端 Django 测试）
+集成测试：Cypress 运行预约全流程模拟（注册→预约→审核→确认）
+3. 部署阶段
+触发条件：main分支代码变更
+部署步骤：
+自动构建 Docker 镜像并推送到 Docker Hub
+Kubernetes 更新 Deployment，滚动替换 Pod（最大不可用 1 个实例）
+
+部署后检查：调用 API 健康端点，返回 200 状态码则视为成功

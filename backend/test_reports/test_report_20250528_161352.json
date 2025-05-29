@@ -1,0 +1,44 @@
+{
+  "timestamp": "2025-05-28T16:13:52.545895",
+  "tests": [
+    {
+      "name": "test_tc_012_non_admin_cannot_get_user_list",
+      "status": "passed",
+      "timestamp": "2025-05-28T16:13:52.749665",
+      "message": "Non-admin users cannot access user list",
+      "data": {
+        "detail": "您没有执行该操作的权限。"
+      }
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "errors": 0
+  },
+  "features": {
+    "completed": [
+      {
+        "name": "User Management",
+        "description": "Implemented user information CRUD operations"
+      },
+      {
+        "name": "Membership Management",
+        "description": "Implemented membership level and points management"
+      }
+    ],
+    "in_progress": [
+      {
+        "name": "Trainer Management",
+        "description": "Currently implementing trainer information management"
+      }
+    ],
+    "not_implemented": [
+      {
+        "name": "Course Management",
+        "description": "Planned implementation of course booking and scheduling"
+      }
+    ]
+  }
+}

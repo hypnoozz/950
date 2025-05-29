@@ -1,0 +1,39 @@
+{
+  "timestamp": "2025-05-28T16:13:50.390586",
+  "tests": [
+    {
+      "name": "test_tc_005_invalid_password",
+      "status": "passed",
+      "timestamp": "2025-05-28T16:13:50.787422",
+      "message": "Returns 401 for invalid password",
+      "data": {
+        "error": "用户名或密码不正确"
+      }
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "errors": 0
+  },
+  "features": {
+    "completed": [
+      {
+        "name": "User Authentication",
+        "description": "Implemented user login, registration, and password reset functionality"
+      },
+      {
+        "name": "Permission Control",
+        "description": "Implemented role-based permission control system"
+      }
+    ],
+    "in_progress": [],
+    "not_implemented": [
+      {
+        "name": "Social Login",
+        "description": "Planned implementation of third-party social platform login"
+      }
+    ]
+  }
+}

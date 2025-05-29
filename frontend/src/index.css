@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+  @apply bg-gray-900 text-gray-100; /* Default dark theme */
+  /* User will set their background image path here */
+  /* background-image: url('path/to/your/background-image.jpg'); */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* Custom animated border for inputs */
+.input-glow-border {
+  @apply border-2 border-transparent rounded-md transition-all duration-300;
+}
+
+.input-glow-border:focus {
+  @apply outline-none border-primary shadow-glow-primary;
+  animation: border-glow-animation 1.5s infinite alternate;
+}
+
+@keyframes border-glow-animation {
+  0% {
+    border-color: theme('colors.primary / 50%');
+    box-shadow: 0 0 8px 0px theme('colors.primary / 30%');
+  }
+  100% {
+    border-color: theme('colors.secondary / 70%');
+    box-shadow: 0 0 16px 2px theme('colors.secondary / 50%');
+  }
+}
+
+/* General card styling with a tech feel */
+.tech-card {
+  @apply bg-custom-card backdrop-blur-sm border border-custom-border rounded-lg shadow-lg overflow-hidden;
+}
+
+/* Horizontal slide transition for cards (example, apply as needed) */
+.card-slide-enter {
+  opacity: 0;
+  transform: translateX(-50px);
+}
+.card-slide-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+.card-slide-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+.card-slide-exit-active {
+  opacity: 0;
+  transform: translateX(50px);
+  transition: opacity 300ms ease-in, transform 300ms ease-in;
+}
+
+/* Custom scrollbar for a more modern feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-gray-800 rounded-full;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-primary rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-blue-400;
+}
+
+.site-layout-content {
+  min-height: 280px;
+  padding: 24px;
+  background: #fff;
+}
+
+.logo {
+  float: left;
+  width: 120px;
+  height: 31px;
+  margin: 16px 24px 16px 0;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.ant-row-rtl .logo {
+  float: right;
+  margin: 16px 0 16px 24px;
+}
+
+.login-form {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 40px;
+  background: #f0f2f5;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.login-form-button {
+  width: 100%;
+}
+
+.login-form-forgot {
+  float: right;
+}
+
+.login-form-title {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #1890ff;
+}
+
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.header-user-info {
+  display: flex;
+  align-items: center;
+}
+
+.course-card {
+  margin-bottom: 16px;
+  height: 100%;
+}
+
+.course-image {
+  height: 220px;
+  object-fit: cover;
+}
+
+.error-message {
+  color: #ff4d4f;
+  margin-bottom: 16px;
+} 

@@ -1,0 +1,54 @@
+{
+  "admin": {
+    "login": {
+      "title": "Admin Login",
+      "username": "Username",
+      "password": "Password",
+      "submit": "Login",
+      "success": "Login successful",
+      "error": "Invalid username or password",
+      "notAdmin": "You don't have admin privileges",
+      "usernameRequired": "Please enter username",
+      "passwordRequired": "Please enter password"
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "totalUsers": "Total Users",
+      "members": "Members",
+      "orders": "Orders",
+      "courses": "Courses"
+    },
+    "user": {
+      "title": "User Management",
+      "username": "Username",
+      "email": "Email",
+      "password": "Password",
+      "passwordPlaceholder": "Leave blank to keep current password",
+      "role": "Role",
+      "member": "Member",
+      "actions": "Actions",
+      "edit": "Edit",
+      "delete": "Delete",
+      "add": "Add User",
+      "searchPlaceholder": "Search username/email",
+      "confirmDelete": "Are you sure to delete this user?",
+      "deleteSuccess": "Deleted successfully",
+      "deleteError": "Delete failed",
+      "createSuccess": "User created successfully",
+      "createError": "Failed to create user",
+      "updateSuccess": "User updated successfully",
+      "updateError": "Failed to update user",
+      "fetchError": "Failed to fetch user list",
+      "usernameRequired": "Please enter username",
+      "usernameTooShort": "Username must be at least 3 characters",
+      "emailRequired": "Please enter email",
+      "emailInvalid": "Please enter a valid email",
+      "passwordRequired": "Please enter password",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "roleRequired": "Please select a role",
+      "roleMember": "Member",
+      "roleStaff": "Staff",
+      "roleAdmin": "Admin"
+    }
+  }
+} 

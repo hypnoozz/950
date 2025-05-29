@@ -1,0 +1,1 @@
+default_app_config = 'gym_api.auth.apps.AuthConfig' 
