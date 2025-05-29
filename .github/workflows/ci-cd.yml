@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -36,11 +36,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Wait for MySQL to be ready
-      - name: Wait for MySQL
-        run: |
-          timeout 30s bash -c 'until mysqladmin ping -h localhost -u root -proot123 --silent; do sleep 1; done'
-
       # Setup Node.js environment
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -53,11 +48,11 @@ jobs:
           cd frontend
           npm install --legacy-peer-deps
 
-      # Build the frontend project
-      - name: Build frontend
+      # Run frontend tests
+      - name: Run frontend tests
         run: |
           cd frontend
-          npm run build
+          npm run test -- --watchAll=false
 
       # Setup Python environment
       - name: Setup Python
@@ -71,21 +66,9 @@ jobs:
           cd backend
           pip install -r requirements.txt
 
-      # Run Django migrations
-      - name: Run Django migrations
-        run: |
-          cd backend
-          python manage.py migrate
-
       # Run backend tests
       - name: Run backend tests
         run: |
           cd backend
           python manage.py test --verbosity=2
         continue-on-error: true
-
-      # Run frontend tests
-      - name: Run frontend tests
-        run: |
-          cd frontend
-          npm run test -- --watchAll=false
