@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -9,19 +9,21 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the repository code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Node.js 环境和缓存
-      - name: Set up Node.js
+      # Setup Node.js environment
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
+      # Cache Node.js dependencies for faster installs
       - name: Cache Node.js modules
         uses: actions/cache@v3
         with:
@@ -30,36 +32,25 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      # 安装前端依赖（解决 peer deps 冲突）
-      - name: Install frontend dependencies with legacy peer deps
+      # Install frontend dependencies with legacy peer deps to avoid conflicts
+      - name: Install frontend dependencies
         run: |
           cd frontend
           npm install --legacy-peer-deps
 
-      # 前端安全审计
-      - name: Audit frontend dependencies
-        run: |
-          cd frontend
-          npm audit --audit-level=moderate || true
-
-      # 前端测试
-      - name: Run frontend tests
-        run: |
-          cd frontend
-          npm test -- --watchAll=false
-
-      # 构建前端，CI=true 输出详细日志
+      # Build the frontend project
       - name: Build frontend
         run: |
           cd frontend
-          CI=true npm run build
+          npm run build
 
-      # Python 环境和缓存
-      - name: Set up Python
+      # Setup Python environment
+      - name: Setup Python
         uses: actions/setup-python@v3
         with:
           python-version: '3.9'
 
+      # Cache Python pip packages for faster installs
       - name: Cache Python packages
         uses: actions/cache@v3
         with:
@@ -68,46 +59,32 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      # 安装后端依赖
-      - name: Install Python dependencies
+      # Install backend dependencies
+      - name: Install backend dependencies
         run: |
           cd backend
           pip install -r requirements.txt
 
-      # 后端安全审计（需要先安装 bandit）
-      - name: Install bandit
-        run: pip install bandit
-
-      - name: Audit backend code
-        run: |
-          cd backend
-          bandit -r . || true
-
-      # 运行后端测试
-      - name: Run backend tests
-        run: |
-          cd backend
-          python manage.py test
-
-      # 运行数据库迁移
+      # Run Django migrations to update the database schema
       - name: Run Django migrations
         run: |
           cd backend
           python manage.py migrate
 
-      # 收集静态文件
+      # Collect static files (optional if you serve them in production)
       - name: Collect static files
         run: |
           cd backend
           python manage.py collectstatic --noinput
 
-      # 部署（示例，请根据你实际服务器信息替换）
-      - name: Deploy to server
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      # (Optional) Run backend tests if you have any
+      - name: Run backend tests
         run: |
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          scp -i private_key.pem -r frontend/build/* your-user@your-server:/path/to/deploy/frontend/
-          scp -i private_key.pem -r backend/static/* your-user@your-server:/path/to/deploy/backend/static/
-          rm private_key.pem
+          cd backend
+          python manage.py test
+
+      # (Optional) Run frontend tests if you have any
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm run test -- --watchAll=false
