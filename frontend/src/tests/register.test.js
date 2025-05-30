@@ -4,15 +4,22 @@ import { BrowserRouter } from 'react-router-dom';
 import RegisterPage from '../pages/auth/RegisterPage';
 import fs from 'fs';
 import path from 'path';
+import { AuthProvider } from '../context/AuthContext';
+import axios from 'axios';
 
 // Mock axios
-jest.mock('axios', () => ({
-  post: jest.fn(),
-  defaults: {
-    headers: {
-      common: {}
-    }
-  }
+jest.mock('axios');
+
+// Mock useAuth hook
+jest.mock('../context/AuthContext', () => ({
+  ...jest.requireActual('../context/AuthContext'),
+  useAuth: () => ({
+    isAuthenticated: false,
+    user: null,
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: jest.fn()
+  })
 }));
 
 const originalConsole = { ...console };
@@ -39,13 +46,19 @@ describe('Register Page', () => {
   test('renders register form', () => {
     render(
       <BrowserRouter>
-        <RegisterPage />
+        <AuthProvider>
+          <RegisterPage />
+        </AuthProvider>
       </BrowserRouter>
     );
     
-    // Check for basic form elements
-    expect(screen.getByRole('heading', { name: /sign up/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
+    // Check for heading
+    expect(screen.getByRole('heading', { name: /create account/i })).toBeInTheDocument();
+    
+    // Check for form elements
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /continue/i })).toBeInTheDocument();
     console.log('Register page rendered successfully');
   });
 }); 
