@@ -25,6 +25,6 @@ describe('Home Page', () => {
     });
     
     // Check for main heading
-    expect(screen.getByText(/Welcome to Our Gym/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /transform your fitness journey/i })).toBeInTheDocument();
   });
 }); 

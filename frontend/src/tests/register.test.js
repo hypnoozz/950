@@ -26,9 +26,9 @@ describe('Register Page', () => {
     });
     
     // Check for essential form elements
-    expect(screen.getByText(/Create an account/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Email/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Password/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Continue/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /create account/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /continue/i })).toBeInTheDocument();
   });
 }); 
