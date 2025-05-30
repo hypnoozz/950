@@ -41,28 +41,24 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
 
       # Install frontend dependencies
       - name: Install frontend dependencies
         run: |
           cd frontend
-          npm install --legacy-peer-deps
+          npm install
 
       # Run frontend tests
       - name: Run frontend tests
         run: |
           cd frontend
-          npm run test -- --watchAll=false
+          npm test
 
       # Setup Python environment
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: backend/requirements.txt
 
       # Install backend dependencies
       - name: Install backend dependencies
@@ -74,4 +70,4 @@ jobs:
       - name: Run backend tests
         run: |
           cd backend
-          python manage.py test --verbosity=2
+          python manage.py test
