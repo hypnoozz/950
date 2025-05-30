@@ -47,6 +47,19 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Run frontend tests
+      working-directory: ./frontend
+      run: npm test -- --watchAll=false
+      continue-on-error: true
+
+    - name: Run backend tests
+      working-directory: ./backend
+      env:
+        DJANGO_SETTINGS_MODULE: gym_project.settings
+        DATABASE_URL: mysql://root:root@localhost:3306/gym_management
+      run: python manage.py test gym_api.auth.tests
+      continue-on-error: true
+
     - name: Build frontend
       working-directory: ./frontend
       run: npm run build
