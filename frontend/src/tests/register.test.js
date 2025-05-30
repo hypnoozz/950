@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { BrowserRouter } from 'react-router-dom';
 import RegisterPage from '../pages/auth/RegisterPage';
 
@@ -7,8 +8,8 @@ jest.mock('../context/AuthContext', () => ({
   useAuth: () => ({
     user: null,
     login: jest.fn(),
-    register: jest.fn(),
     logout: jest.fn(),
+    register: jest.fn(),
     isAuthenticated: false
   })
 }));
