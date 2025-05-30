@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { message } from 'antd';
+import { useAuth } from '../../context/AuthContext';
 
 // 定义分类和难度选项
 const categories = [
@@ -119,6 +120,9 @@ const CoursesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [categoryData, setCategoryData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { getAuthHeader } = useAuth();
   
   // Fetch category data
   useEffect(() => {
@@ -164,9 +168,9 @@ const CoursesPage = () => {
     const fetchCourses = async () => {
       try {
         setIsLoading(true);
-        const res = await axios.get('/api/courses/');
-        const coursesData = Array.isArray(res.data) ? res.data : 
-                           (res.data.results ? res.data.results : []);
+        const response = await axios.get('/api/courses/', getAuthHeader());
+        const coursesData = Array.isArray(response.data) ? response.data : 
+                           (response.data.results ? response.data.results : []);
         
         // Process course data
         const processedCourses = coursesData.map(course => {
@@ -183,16 +187,17 @@ const CoursesPage = () => {
         
         setCourses(processedCourses);
         setFilteredCourses(processedCourses);
-      } catch (error) {
-        console.error('Failed to get course list:', error);
-        message.error('Failed to get course list');
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to fetch courses');
+        setLoading(false);
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchCourses();
-  }, []);
+  }, [getAuthHeader]);
   
   // Apply filters
   useEffect(() => {
@@ -281,14 +286,18 @@ const CoursesPage = () => {
   // 用于展示的分类列表，优先使用从后端获取的分类
   const displayCategories = categoryData.length > 0 ? categoryData : categories;
   
-  // Loading state
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="container mx-auto px-4 py-16 flex justify-center">
-        <div className="text-center">
-          <div className="w-20 h-20 border-t-4 border-primary border-solid rounded-full animate-spin mx-auto mb-6"></div>
-          <h3 className="text-2xl font-semibold text-white">Loading courses...</h3>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl">Loading courses...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl text-red-500">{error}</div>
       </div>
     );
   }

@@ -1,61 +1,80 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 class User(AbstractUser):
     """
-    自定义用户模型
+    Custom User Model
     """
     ROLE_CHOICES = (
-        ('admin', '管理员'),
-        ('staff', '员工'),
-        ('member', '会员'),
-        ('user', '普通用户'),
+        ('user', 'User'),
+        ('member', 'Member'),
+        ('staff', 'Staff'),
+        ('admin', 'Admin'),
     )
     
     MEMBERSHIP_STATUS_CHOICES = (
-        ('active', '有效'),
-        ('expired', '已过期'),
-        ('suspended', '已暂停'),
-        ('cancelled', '已取消'),
+        ('active', 'Active'),
+        ('expired', 'Expired'),
+        ('suspended', 'Suspended'),
+        ('cancelled', 'Cancelled'),
     )
     
-    # 基本信息
-    phone = models.CharField(_('手机号'), max_length=11, unique=True, null=True, blank=True, 
-                           help_text=_('用于登录和通知的手机号码'))
-    role = models.CharField(_('角色'), max_length=10, choices=ROLE_CHOICES, default='user',
-                           help_text=_('用户角色：管理员、员工、会员或普通用户'))
-    avatar = models.CharField(_('头像URL'), max_length=500, null=True, blank=True)
+    # Basic Information
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
+    avatar = models.CharField(max_length=500, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
     
-    # 会员信息
-    member_id = models.CharField(_('会员ID'), max_length=20, unique=True, null=True, blank=True,
-                              help_text=_('会员卡号'))
-    birth_date = models.DateField(_('出生日期'), null=True, blank=True)
-    gender = models.CharField(_('性别'), max_length=10, choices=[('male', '男'), ('female', '女'), ('other', '其他')], 
+    # Membership Information
+    member_id = models.CharField(_('Member ID'), max_length=20, unique=True, null=True, blank=True,
+                              help_text=_('Membership card number'))
+    birth_date = models.DateField(_('Birth Date'), null=True, blank=True)
+    gender = models.CharField(_('Gender'), max_length=10, choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other')], 
                             null=True, blank=True)
-    address = models.TextField(_('地址'), null=True, blank=True)
     
-    # 会员卡信息
-    membership_start = models.DateField(_('会员开始日期'), null=True, blank=True)
-    membership_end = models.DateField(_('会员结束日期'), null=True, blank=True)
-    membership_type = models.CharField(_('会员类型'), max_length=20, null=True, blank=True,
-                                    choices=[('monthly', '月卡'), ('quarterly', '季卡'), ('yearly', '年卡')])
-    membership_status = models.CharField(_('会员状态'), max_length=20, choices=MEMBERSHIP_STATUS_CHOICES, 
+    # Membership Card Information
+    membership_start = models.DateField(_('Membership Start Date'), null=True, blank=True)
+    membership_end = models.DateField(_('Membership End Date'), null=True, blank=True)
+    membership_type = models.CharField(_('Membership Type'), max_length=20, null=True, blank=True,
+                                    choices=[('monthly', 'Monthly'), ('quarterly', 'Quarterly'), ('yearly', 'Yearly')])
+    membership_status = models.CharField(_('Membership Status'), max_length=20, choices=MEMBERSHIP_STATUS_CHOICES, 
                                       default='active', null=True, blank=True)
-    membership_plan_id = models.IntegerField(_('会员套餐ID'), null=True, blank=True)
-    membership_plan_name = models.CharField(_('会员套餐名称'), max_length=100, null=True, blank=True)
+    membership_plan_id = models.IntegerField(_('Membership Plan ID'), null=True, blank=True)
+    membership_plan_name = models.CharField(_('Membership Plan Name'), max_length=100, null=True, blank=True)
     
-    # 元数据
-    created_at = models.DateTimeField(_('创建时间'), auto_now_add=True)
-    updated_at = models.DateTimeField(_('更新时间'), auto_now=True)
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        verbose_name = _('用户')
-        verbose_name_plural = _('用户')
+        verbose_name = _('User')
+        verbose_name_plural = _('Users')
         db_table = 'gym_user'
         
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
+
+    def has_active_membership(self):
+        """Check if user has an active membership"""
+        return self.memberships.filter(
+            is_active=True,
+            end_date__gt=timezone.now()
+        ).exists()
+
+    def get_active_membership(self):
+        """Get user's active membership if exists"""
+        return self.memberships.filter(
+            is_active=True,
+            end_date__gt=timezone.now()
+        ).first()
+
+    def get_enrolled_courses(self):
+        """Get all courses user is enrolled in"""
+        return self.enrollments.filter(
+            schedule__start_time__gt=timezone.now()
+        ).select_related('schedule', 'schedule__course')
 
 
 class UserProfile(models.Model):
@@ -63,36 +82,38 @@ class UserProfile(models.Model):
     用户健身档案
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile',
-                              verbose_name=_('用户'))
-    height = models.DecimalField(_('身高(cm)'), max_digits=5, decimal_places=2, null=True, blank=True)
-    weight = models.DecimalField(_('体重(kg)'), max_digits=5, decimal_places=2, null=True, blank=True)
-    health_condition = models.TextField(_('健康状况'), null=True, blank=True, 
-                                      help_text=_('记录用户的健康状况、疾病史或注意事项'))
-    fitness_goal = models.CharField(_('健身目标'), max_length=50, null=True, blank=True,
+                              verbose_name=_('User'))
+    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    health_condition = models.TextField(_('Health Condition'), null=True, blank=True, 
+                                      help_text=_('Record user\'s health condition, medical history, or precautions'))
+    fitness_goal = models.CharField(_('Fitness Goal'), max_length=50, null=True, blank=True,
                                 choices=[
-                                    ('weight_loss', '减肥'),
-                                    ('muscle_gain', '增肌'),
-                                    ('fitness', '健身'),
-                                    ('wellness', '健康'),
-                                    ('rehabilitation', '康复'),
-                                    ('other', '其他')
+                                    ('weight_loss', 'Weight Loss'),
+                                    ('muscle_gain', 'Muscle Gain'),
+                                    ('fitness', 'Fitness'),
+                                    ('wellness', 'Wellness'),
+                                    ('rehabilitation', 'Rehabilitation'),
+                                    ('other', 'Other')
                                 ])
-    fitness_level = models.CharField(_('健身水平'), max_length=20, null=True, blank=True,
+    fitness_level = models.CharField(_('Fitness Level'), max_length=20, null=True, blank=True,
                                   choices=[
-                                      ('beginner', '初学者'),
-                                      ('intermediate', '中级'),
-                                      ('advanced', '高级')
+                                      ('beginner', 'Beginner'),
+                                      ('intermediate', 'Intermediate'),
+                                      ('advanced', 'Advanced')
                                   ])
-    notes = models.TextField(_('备注'), null=True, blank=True)
+    notes = models.TextField(_('Notes'), null=True, blank=True)
+    medical_conditions = models.TextField(blank=True, null=True)
+    emergency_contact = models.CharField(max_length=100, blank=True, null=True)
     
-    # 元数据
-    created_at = models.DateTimeField(_('创建时间'), auto_now_add=True)
-    updated_at = models.DateTimeField(_('更新时间'), auto_now=True)
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        verbose_name = _('用户健身档案')
-        verbose_name_plural = _('用户健身档案')
+        verbose_name = _('User Fitness Profile')
+        verbose_name_plural = _('User Fitness Profiles')
         db_table = 'gym_user_profile'
         
     def __str__(self):
-        return f"{self.user.username}的健身档案" 
+        return f"{self.user.username}'s Fitness Profile" 

@@ -60,11 +60,11 @@ const RegisterPage = () => {
       else if (formData.username.length < 3) newErrors.username = 'Username must be at least 3 characters';
       
       if (!formData.email) newErrors.email = 'Email is required';
-      else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email address is invalid';
+      else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Please enter a valid email address';
       
       if (!formData.password) newErrors.password = 'Password is required';
       else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
-      else if (passwordStrength < 75) newErrors.password = 'Password is not strong enough';
+      else if (passwordStrength < 75) newErrors.password = 'Please use a stronger password';
       
       if (!formData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
       else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
@@ -72,7 +72,7 @@ const RegisterPage = () => {
     
     if (formStep === 2) {
       if (formData.phone && !/^\d{10,11}$/.test(formData.phone)) {
-        newErrors.phone = 'Phone number should be 10-11 digits';
+        newErrors.phone = 'Please enter a valid phone number (10-11 digits)';
       }
     }
     
@@ -107,11 +107,12 @@ const RegisterPage = () => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
+        password2: formData.confirmPassword,
         phone: formData.phone || null
       };
       
       await register(registrationData);
-      navigate('/profile');
+      navigate('/login');
     } catch (err) {
       // Handle API validation errors
       if (err.response?.data) {
@@ -133,7 +134,7 @@ const RegisterPage = () => {
       {/* Background elements */}
       <div 
         className="absolute inset-0 bg-cover bg-center z-0 opacity-25" 
-        style={{ backgroundImage: `url('/images/gym-background.jpg')` }}
+        style={{ backgroundImage: `url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80')` }}
       ></div>
       
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900/90 to-gray-800 z-10"></div>

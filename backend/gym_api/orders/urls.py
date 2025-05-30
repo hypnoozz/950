@@ -13,7 +13,7 @@ from .views import (
     AdminOrderDetailView,
 )
 
-app_name = 'orders'
+app_name = 'gym_orders'
 
 urlpatterns = [
     # 会员套餐

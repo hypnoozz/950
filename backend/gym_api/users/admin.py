@@ -4,19 +4,22 @@ from django.utils.translation import gettext_lazy as _
 from .models import User, UserProfile
 
 @admin.register(User)
-class UserAdmin(BaseUserAdmin):
-    """自定义用户管理"""
-    list_display = ('username', 'email', 'phone', 'role', 'membership_type', 'membership_end', 'is_active')
-    list_filter = ('role', 'membership_type', 'is_active', 'membership_end')
-    search_fields = ('username', 'email', 'phone', 'member_id')
+class UserAdmin(admin.ModelAdmin):
+    """User Management"""
+    list_display = ('username', 'email', 'is_staff', 'is_active', 'date_joined')
+    list_filter = ('is_staff', 'is_active', 'date_joined')
+    search_fields = ('username', 'email')
+    ordering = ('username',)
     fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        (_('个人信息'), {'fields': ('first_name', 'last_name', 'email', 'phone', 'avatar')}),
-        (_('角色信息'), {'fields': ('role',)}),
-        (_('会员信息'), {'fields': ('member_id', 'birth_date', 'gender', 'address')}),
-        (_('会员卡信息'), {'fields': ('membership_type', 'membership_start', 'membership_end')}),
-        (_('权限'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
-        (_('重要日期'), {'fields': ('last_login', 'date_joined', 'created_at', 'updated_at')}),
+        ('Basic Information', {
+            'fields': ('username', 'email', 'password')
+        }),
+        ('Permissions', {
+            'fields': ('is_staff', 'is_active', 'groups', 'user_permissions')
+        }),
+        ('Important dates', {
+            'fields': ('last_login', 'date_joined')
+        }),
     )
     readonly_fields = ('created_at', 'updated_at')
     add_fieldsets = (
@@ -25,12 +28,26 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('username', 'email', 'phone', 'password1', 'password2', 'role'),
         }),
     )
-    ordering = ('-date_joined',)
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    """用户健身档案管理"""
-    list_display = ('user', 'height', 'weight', 'fitness_goal', 'fitness_level')
-    list_filter = ('fitness_goal', 'fitness_level')
-    search_fields = ('user__username', 'user__email', 'user__phone')
-    readonly_fields = ('created_at', 'updated_at') 
+    """User Fitness Profile Management"""
+    list_display = ('user', 'height', 'weight', 'fitness_goal', 'fitness_level', 'created_at')
+    list_filter = ('fitness_goal', 'fitness_level', 'created_at')
+    search_fields = ('user__username', 'user__email')
+    fieldsets = (
+        ('User Information', {
+            'fields': ('user', 'avatar')
+        }),
+        ('Physical Attributes', {
+            'fields': ('height', 'weight', 'medical_conditions')
+        }),
+        ('Fitness Information', {
+            'fields': ('fitness_goal', 'fitness_level', 'health_condition', 'notes')
+        }),
+         ('Contact Information', {
+            'fields': ('emergency_contact',)
+        }),
+    )
+    readonly_fields = ('created_at', 'updated_at')
+    ordering = ('-created_at',) 

@@ -57,7 +57,7 @@ class RegisterView(APIView):
 
 class LoginView(APIView):
     """
-    用户登录视图
+    User login view
     """
     permission_classes = [permissions.AllowAny]
     
@@ -66,17 +66,17 @@ class LoginView(APIView):
         password = request.data.get('password')
         
         if not username or not password:
-            return Response({'error': '请提供用户名和密码'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Please provide username and password'}, status=status.HTTP_400_BAD_REQUEST)
         
         user = authenticate(username=username, password=password)
         
         if not user:
-            return Response({'error': '用户名或密码不正确'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Invalid username or password', 'detail': 'Authentication failed'}, status=status.HTTP_401_UNAUTHORIZED)
         
-        # 创建JWT令牌
+        # Create JWT tokens
         refresh = RefreshToken.for_user(user)
         
-        # 序列化用户信息
+        # Serialize user information
         serializer = UserSerializer(user)
         
         return Response({
@@ -87,7 +87,7 @@ class LoginView(APIView):
 
 class LogoutView(APIView):
     """
-    用户注销视图
+    User logout view
     """
     permission_classes = [permissions.IsAuthenticated]
     
@@ -96,71 +96,70 @@ class LogoutView(APIView):
             refresh_token = request.data.get('refresh')
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response({'message': '成功注销'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Successfully logged out'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class AdminUserCreateView(APIView):
     """
-    管理员创建用户视图
+    Admin user creation view
     """
     permission_classes = [IsAdmin]
     
     def post(self, request):
-        # 从请求中获取数据
+        # Get data from request
         data = request.data.copy()
         
-        # 确保密码存在
+        # Ensure password exists
         if 'password' not in data:
-            return Response({'error': '必须提供密码'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
             
-        # 使用序列化器验证数据
+        # Validate data using serializer
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
-            # 保存用户并设置密码
+            # Save user and set password
             user = serializer.save()
-            user.set_password(data['password'])
             
-            # 设置角色（如果提供）
+            # Set role (if provided)
             if 'role' in data:
                 user.role = data['role']
             else:
-                user.role = 'member'  # 默认角色
+                user.role = 'member'  # Default role
                 
             user.save()
             
-            # 返回创建的用户数据（不包含密码）
+            # Return created user data (without password)
             return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class AdminUserUpdateView(APIView):
     """
-    管理员更新用户视图
+    Admin user update view
     """
     permission_classes = [IsAdmin]
     
     def put(self, request, user_id):
         try:
-            # 获取用户
+            # Get user
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
-            return Response({'error': '用户不存在'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
             
-        # 从请求中获取数据
+        # Get data from request
         data = request.data.copy()
         
-        # 使用序列化器更新数据
+        # Update data using serializer
         serializer = UserSerializer(user, data=data, partial=True)
         if serializer.is_valid():
-            # 如果提供了新密码，则更新密码
+            # If new password provided, update password
             if 'password' in data and data['password']:
                 user.set_password(data['password'])
                 
-            # 保存更新
+            # Save updates
             serializer.save()
             
-            # 如果提供了角色，则更新角色
+            # If role provided, update role
             if 'role' in data:
                 user.role = data['role']
                 user.save()

@@ -76,16 +76,16 @@ class CourseEnrollmentSerializer(serializers.ModelSerializer):
     
     def validate(self, data):
         """
-        检查课程是否已满
+        Check if the course is full
         """
         schedule = data.get('schedule')
         if schedule.current_capacity >= schedule.course.capacity:
-            raise serializers.ValidationError('该课程已满，无法报名')
+            raise serializers.ValidationError('This course is full')
         return data
     
     def create(self, validated_data):
         """
-        创建报名记录，并更新课程当前容量
+        Create enrollment record and update course capacity
         """
         enrollment = super().create(validated_data)
         schedule = enrollment.schedule

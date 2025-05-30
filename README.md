@@ -1,139 +1,122 @@
 # Gym Management System
 
-A comprehensive gym management system built with Django and React.
+> **Recommended Python version: 3.11 or 3.12**  
+> Python 3.13 may cause dependency installation issues (e.g., Pillow).
+
+A comprehensive gym management system with user authentication, course management, and order processing.
+
+## Prerequisites
+
+- Python 3.x
+- Node.js and npm
+- MySQL (optional, SQLite is used by default)
+
+## Environment Variables
+
+Create a `.env` file in the `backend` directory with the following variables:
+
+```env
+DEBUG=True
+SECRET_KEY=your-secret-key
+ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173
+```
+
+## Quick Start
+
+### For Mac/Linux Users
+```bash
+# Make the setup script executable
+chmod +x setup.sh
+
+# Run the setup script
+./setup.sh
+```
+
+### For Windows Users
+```bash
+# Run the setup script
+setup.bat
+```
+
+The setup script will:
+1. Check for required dependencies
+2. Install backend dependencies
+3. Install frontend dependencies
+4. Build the frontend application
+5. Set up the database
+6. Start the development server
+
+Once complete, the application will be running at http://localhost:8000
 
 ## Project Structure
 
 ```
-gym-sys/
 ├── backend/                 # Django backend
-│   ├── gym_api/            # Main application
+│   ├── gym_api/            # Main Django project
 │   │   ├── users/         # User management
-│   │   │   ├── models.py
-│   │   │   ├── views.py
-│   │   │   └── tests.py
-│   │   ├── auth/          # Authentication
-│   │   │   ├── views.py
-│   │   │   └── tests.py
 │   │   ├── courses/       # Course management
-│   │   │   ├── models.py
-│   │   │   ├── views.py
-│   │   │   └── tests.py
-│   │   └── utils/         # Utility functions
-│   │       └── test_report.py
-│   ├── requirements.txt    # Python dependencies
-│   └── manage.py          # Django management script
-├── frontend/               # React frontend
-│   ├── src/               # Source code
-│   │   ├── components/    # React components
-│   │   ├── pages/        # Page components
-│   │   ├── context/      # React context
-│   │   └── __tests__/    # Frontend tests
-│   └── package.json       # Node dependencies
-├── docs/                  # Documentation
-│   ├── test/             # Testing documentation
-│   │   ├── README.md     # Test overview
-│   │   └── testcases.md  # Detailed test cases
-│   ├── api/              # API documentation
-│   └── user/             # User documentation
-└── README.md             # Project documentation
+│   │   ├── orders/        # Order processing
+│   │   ├── auth/          # Authentication
+│   │   └── common/        # Common utilities
+│   ├── gym_project/       # Django project settings
+│   ├── static/            # Static files
+│   ├── templates/         # HTML templates
+│   └── requirements.txt   # Python dependencies
+├── frontend/              # React frontend
+│   ├── src/              # Source code
+│   │   ├── components/   # React components
+│   │   ├── pages/       # Page components
+│   │   ├── context/     # React context
+│   │   └── utils/       # Utility functions
+│   └── package.json     # Node.js dependencies
+├── setup.sh             # Setup script for Mac/Linux
+└── setup.bat            # Setup script for Windows
 ```
 
-## Key Features
+## Features
 
-- User Authentication
-- Member Management
-- Class Scheduling
-- Administrative Tasks
+- User authentication and authorization
+- Course management and scheduling
+- Membership plan management
+- Order processing
+- User profile management
+- Responsive frontend design
+- Admin dashboard
 
-## Technology Stack
+## Development
 
-- Backend: Python, Django, Django REST Framework
-- Frontend: React, TypeScript
-- Database: MySQL
-- Testing: pytest (Backend), Jest (Frontend)
-
-## Getting Started
-
-### Backend Setup
-
-1. Create and activate virtual environment:
+### Backend Development
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-3. Configure database:
-```bash
-python manage.py migrate
-```
-
-4. Run development server:
-```bash
 python manage.py runserver
 ```
 
-### Frontend Setup
-
-1. Install dependencies:
+### Frontend Development
 ```bash
 cd frontend
-npm install
-```
-
-2. Start development server:
-```bash
 npm start
 ```
 
+## Database
+
+By default, the application uses SQLite for development and testing. For production, configure MySQL in your environment variables.
+
 ## Testing
 
-### Backend Tests
+Run the tests using:
 ```bash
 cd backend
 python manage.py test
 ```
 
-### Frontend Tests
-```bash
-cd frontend
-npm test
-```
+## Contributing
 
-For detailed test cases and reports, see [Testing Documentation](docs/test/README.md).
-
-## Documentation
-
-- [API Documentation](docs/api/README.md)
-- [User Manual](docs/user/README.md)
-- [Test Cases](docs/test/testcases.md)
-
-## Team Contributions
-
-- **Team Member 1**: Backend Development, Testing
-- **Team Member 2**: Frontend Development, UI/UX
-- **Team Member 3**: Database Design, Documentation
-- **Team Member 4**: Project Management, Testing
-
-## Challenges and Solutions
-
-1. **Authentication System**
-   - Challenge: Implementing secure JWT authentication
-   - Solution: Used Django REST framework's JWT implementation
-
-2. **Real-time Updates**
-   - Challenge: Managing real-time class schedule updates
-   - Solution: Implemented WebSocket connections
-
-3. **Data Consistency**
-   - Challenge: Maintaining data integrity across distributed system
-   - Solution: Implemented transaction management and validation
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
 ## License
 

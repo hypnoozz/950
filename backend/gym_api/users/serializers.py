@@ -29,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
     """
     profile = UserProfileSerializer(read_only=True)
     password = serializers.CharField(write_only=True, required=True, min_length=6)
-    password2 = serializers.CharField(write_only=True, required=True)
+    password2 = serializers.CharField(write_only=True, required=False)
     role_display = serializers.CharField(source='get_role_display', read_only=True)
     membership_status_display = serializers.CharField(source='get_membership_status_display', read_only=True)
     
@@ -64,7 +64,7 @@ class UserSerializer(serializers.ModelSerializer):
         """
         Validate that passwords match
         """
-        if data.get('password') != data.get('password2'):
+        if data.get('password2') and data.get('password') != data.get('password2'):
             raise serializers.ValidationError({"password2": "Passwords do not match"})
         return data
     
@@ -105,33 +105,32 @@ class UserSerializer(serializers.ModelSerializer):
             password = validated_data.pop('password')
             validated_data.pop('password2', None)  # Remove password2 if present
             
-            # Create user
-            user = User.objects.create(**validated_data)
-            user.set_password(password)
-            user.save()
+            # Create user with default role
+            if 'role' not in validated_data:
+                validated_data['role'] = 'user'
             
-            # Check if profile already exists
-            if not hasattr(user, 'profile'):
-                # Create user profile with default values
-                UserProfile.objects.create(
-                    user=user,
-                    fitness_goal='fitness',
-                    fitness_level='beginner'
-                )
-            else:
-                # Update existing profile with default values if needed
-                profile = user.profile
-                if not profile.fitness_goal:
-                    profile.fitness_goal = 'fitness'
-                if not profile.fitness_level:
-                    profile.fitness_level = 'beginner'
-                profile.save()
+            # Create user
+            user = User.objects.create_user(
+                username=validated_data.pop('username'),
+                email=validated_data.pop('email'),
+                password=password,
+                **validated_data
+            )
+            
+            # Create or get user profile
+            UserProfile.objects.get_or_create(
+                user=user,
+                defaults={
+                    'fitness_goal': 'fitness',
+                    'fitness_level': 'beginner'
+                }
+            )
             
             return user
             
         except Exception as e:
             logger.error(f"User creation failed: {str(e)}", exc_info=True)
-            # 确保在发生错误时回滚事务
+            # Ensure rollback on error
             transaction.set_rollback(True)
             raise serializers.ValidationError(f"User creation failed: {str(e)}")
     
@@ -195,7 +194,7 @@ class UserMembershipSerializer(serializers.ModelSerializer):
 
 class UserMembershipUpdateSerializer(serializers.ModelSerializer):
     """
-    更新用户会员信息的序列化器
+    User membership update serializer
     """
     class Meta:
         model = User
@@ -206,7 +205,7 @@ class UserMembershipUpdateSerializer(serializers.ModelSerializer):
         
     def validate(self, data):
         """
-        验证会员套餐ID和名称是否匹配
+        Validate membership plan ID and name match
         """
         plan_id = data.get('membership_plan_id')
         plan_name = data.get('membership_plan_name')
@@ -214,14 +213,14 @@ class UserMembershipUpdateSerializer(serializers.ModelSerializer):
         if plan_id:
             try:
                 plan = MembershipPlan.objects.get(id=plan_id)
-                # 如果提供了plan_id但没有提供plan_name，自动填充
+                # If plan_id provided but plan_name not provided, auto-fill
                 if not plan_name:
                     data['membership_plan_name'] = plan.name
                     
-                # 如果没有提供membership_type，自动填充
+                # If membership_type not provided, auto-fill
                 if 'membership_type' not in data:
                     data['membership_type'] = plan.plan_type
             except MembershipPlan.DoesNotExist:
-                raise serializers.ValidationError("指定的会员套餐不存在")
+                raise serializers.ValidationError("Specified membership plan does not exist")
                 
         return data 

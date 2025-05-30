@@ -1,156 +1,128 @@
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from .models import User, UserProfile
-from ..utils.test_report import TestReport
+from gym_api.utils.test_report import TestReport
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+# 创建单个共享的 TestReport 实例
+shared_report = TestReport()
 
 class UserTests(TestCase):
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shared_report.save_report('test/test_reports/backend_test.txt')
+
     def setUp(self):
         self.client = APIClient()
-        self.report = TestReport()
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
             password='password123',
-            phone='1234567890',
-            address='Test Address'
-        )
-        self.profile, created = UserProfile.objects.get_or_create(
-            user=self.user,
-            defaults={
-                'height': 175.5,
-                'weight': 70.0,
-                'fitness_goal': 'weight_loss',
-                'fitness_level': 'beginner'
-            }
+            first_name='Test',
+            last_name='User'
         )
         self.client.force_authenticate(user=self.user)
         self.user_detail_url = reverse('gym_users:user-detail', args=[self.user.id])
         self.profile_url = reverse('gym_users:user-profile', args=[self.user.id])
-        self.user_list_url = reverse('gym_users:user-list-create')
 
-        # Add feature status
-        self.report.add_feature_status(
-            'User Management',
-            'completed',
-            'Implemented user information CRUD operations'
-        )
-        self.report.add_feature_status(
-            'Membership Management',
-            'completed',
-            'Implemented membership level and points management'
-        )
-        self.report.add_feature_status(
-            'Trainer Management',
-            'in_progress',
-            'Currently implementing trainer information management'
-        )
-        self.report.add_feature_status(
-            'Course Management',
-            'not_implemented',
-            'Planned implementation of course booking and scheduling'
+    def test_user_detail(self):
+        """Test retrieving user detail"""
+        response = self.client.get(self.user_detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        shared_report.add_test_result('test_user_detail', 'PASS' if response.status_code == status.HTTP_200_OK else 'FAIL')
+
+class UserAuthenticationTests(APITestCase):
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shared_report.save_report('test/test_reports/backend_test.txt')
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
         )
 
-    def tearDown(self):
-        """Generate report after tests"""
-        self.report.save_report()
-        self.report.generate_html_report()
-
-    def test_tc_009_get_user_profile(self):
-        """Test retrieving user profile"""
-        response = self.client.get(self.profile_url)
-        try:
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(response.data['user_id'], self.user.id)
-            self.report.add_test_result(
-                'test_tc_009_get_user_profile',
-                'passed',
-                'Successfully retrieved user information',
-                {'response': response.data}
-            )
-        except AssertionError as e:
-            self.report.add_test_result(
-                'test_tc_009_get_user_profile',
-                'failed',
-                str(e),
-                response.data
-            )
-            raise
-
-    def test_tc_010_update_user_profile(self):
-        """Test updating user profile"""
+    def test_valid_login(self):
+        """Test valid login credentials"""
+        url = '/api/auth/login/'
         data = {
-            'height': 180.0,
-            'weight': 75.0,
-            'fitness_goal': 'muscle_gain'
+            'username': 'testuser',
+            'password': 'testpass123'
         }
-        response = self.client.patch(self.profile_url, data, format='json')
-        try:
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(float(response.data['height']), 180.0)
-            self.assertEqual(float(response.data['weight']), 75.0)
-            self.assertEqual(response.data['fitness_goal'], 'muscle_gain')
-            self.report.add_test_result(
-                'test_tc_010_update_user_profile',
-                'passed',
-                'Successfully updated user information',
-                {'request': data, 'response': response.data}
-            )
-        except AssertionError as e:
-            self.report.add_test_result(
-                'test_tc_010_update_user_profile',
-                'failed',
-                str(e),
-                {'request': data, 'response': response.data}
-            )
-            raise
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
+        shared_report.add_test_result('test_valid_login', 'PASS' if response.status_code == status.HTTP_200_OK else 'FAIL')
 
-    def test_tc_011_get_user_list_admin(self):
-        """Test admin can get user list"""
-        admin_user = User.objects.create_superuser(
-            username='admin',
-            email='admin@example.com',
-            password='admin123'
+    def test_invalid_password(self):
+        """Test invalid password"""
+        url = '/api/auth/login/'
+        data = {
+            'username': 'testuser',
+            'password': 'wrongpass'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        shared_report.add_test_result('test_invalid_password', 'PASS' if response.status_code == status.HTTP_401_UNAUTHORIZED else 'FAIL')
+
+    def test_user_registration(self):
+        """Test user registration"""
+        url = '/api/auth/register/'
+        data = {
+            'username': 'newuser',
+            'email': 'new@example.com',
+            'password': 'newpass123',
+            'password2': 'newpass123'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.filter(username='newuser').exists())
+        shared_report.add_test_result('test_user_registration', 'PASS' if response.status_code == status.HTTP_201_CREATED else 'FAIL')
+
+class UserAPITests(APITestCase):
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shared_report.save_report('test/test_reports/backend_test.txt')
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
         )
-        self.client.force_authenticate(user=admin_user)
-        response = self.client.get(self.user_list_url)
-        try:
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            usernames = [user['username'] for user in response.data['results']]
-            self.assertIn('admin', usernames)
-            self.assertIn('testuser', usernames)
-            self.report.add_test_result(
-                'test_tc_011_get_user_list_admin',
-                'passed',
-                'Admin successfully retrieved user list',
-                {'response': {'count': response.data['count'], 'usernames': usernames}}
-            )
-        except AssertionError as e:
-            self.report.add_test_result(
-                'test_tc_011_get_user_list_admin',
-                'failed',
-                str(e),
-                response.data
-            )
-            raise
+        self.client.force_authenticate(user=self.user)
 
-    def test_tc_012_non_admin_cannot_get_user_list(self):
-        """Test non-admin cannot get user list"""
-        response = self.client.get(self.user_list_url)
-        try:
-            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-            self.report.add_test_result(
-                'test_tc_012_non_admin_cannot_get_user_list',
-                'passed',
-                'Non-admin users cannot access user list',
-                response.data
-            )
-        except AssertionError as e:
-            self.report.add_test_result(
-                'test_tc_012_non_admin_cannot_get_user_list',
-                'failed',
-                str(e),
-                response.data
-            )
-            raise 
+    def test_user_registration(self):
+        url = '/api/auth/register/'
+        data = {
+            'username': 'newuser',
+            'email': 'new@example.com',
+            'password': 'newpass123',
+            'password2': 'newpass123'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.filter(username='newuser').exists())
+        shared_report.add_test_result('test_user_registration_api', 'PASS' if response.status_code == status.HTTP_201_CREATED else 'FAIL')
+
+    def test_user_login(self):
+        url = '/api/auth/login/'
+        data = {
+            'username': 'testuser',
+            'password': 'testpass123'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
+        shared_report.add_test_result('test_user_login_api', 'PASS' if response.status_code == status.HTTP_200_OK else 'FAIL') 

@@ -21,7 +21,7 @@ from .views import (
     AdminCourseCategoryDetailView,
 )
 
-app_name = 'courses'
+app_name = 'gym_courses'
 
 urlpatterns = [
     # 课程分类

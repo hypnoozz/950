@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { message } from 'antd';
+import { useAuth } from '../../context/AuthContext';
 
 // Weekday mapping
 const weekdayMap = {
@@ -132,22 +133,22 @@ const SchedulesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredSchedules, setFilteredSchedules] = useState([]);
   const [error, setError] = useState(null);
+  const { getAuthHeader } = useAuth();
   
-  // Fetch course schedules
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await axios.get('/api/courses/schedules/');
+        const response = await axios.get('/api/courses/schedules/', getAuthHeader());
         
         // Process response data
         const schedulesData = Array.isArray(response.data) ? response.data : 
                              (response.data.results ? response.data.results : []);
         
         setSchedules(schedulesData);
-      } catch (error) {
-        console.error("Failed to get course schedules:", error);
+      } catch (err) {
+        console.error("Failed to get course schedules:", err);
         setError("Failed to get course schedules. Please try again later.");
         message.error('Failed to get course schedules');
       } finally {
@@ -156,7 +157,7 @@ const SchedulesPage = () => {
     };
     
     fetchSchedules();
-  }, []);
+  }, [getAuthHeader]);
   
   // Filter schedules based on selected day and search query
   useEffect(() => {

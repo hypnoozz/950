@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Dumbbell, ChevronRight, Star, Users, Calendar, Clock, ChevronLeft, ChevronDown } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Dumbbell, ChevronRight, Star, Users, Calendar, Clock, ChevronLeft, ChevronDown, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 // Sample data (would come from API in production)
 const featuredCourses = [
@@ -13,7 +14,7 @@ const featuredCourses = [
     duration: '45 min',
     level: 'Intermediate',
     rating: 4.8,
-    image: '/images/course-1.jpg',
+    image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&h=600&fit=crop&q=80',
     category: 'Cardio'
   },
   {
@@ -24,7 +25,7 @@ const featuredCourses = [
     duration: '60 min',
     level: 'Beginner',
     rating: 4.6,
-    image: '/images/course-2.jpg',
+    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop&q=80',
     category: 'Strength'
   },
   {
@@ -35,56 +36,8 @@ const featuredCourses = [
     duration: '75 min',
     level: 'All Levels',
     rating: 4.9,
-    image: '/images/course-3.jpg',
+    image: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=800&h=600&fit=crop&q=80',
     category: 'Flexibility'
-  }
-];
-
-const membershipPlans = [
-  {
-    id: 1,
-    name: 'Basic',
-    price: 49,
-    period: 'month',
-    features: [
-      'Access to gym facilities',
-      '2 group classes per week',
-      'Locker access',
-      'Fitness assessment'
-    ],
-    recommended: false,
-    color: 'bg-gray-700'
-  },
-  {
-    id: 2,
-    name: 'Premium',
-    price: 89,
-    period: 'month',
-    features: [
-      'Unlimited gym access',
-      'Unlimited group classes',
-      'Personal trainer (2 sessions)',
-      'Nutritional guidance',
-      'Access to spa facilities'
-    ],
-    recommended: true,
-    color: 'bg-primary'
-  },
-  {
-    id: 3,
-    name: 'Elite',
-    price: 149,
-    period: 'month',
-    features: [
-      'VIP gym access 24/7',
-      'All Premium features',
-      'Personal trainer (5 sessions)',
-      'Custom workout programs',
-      'Custom nutrition plan',
-      'Recovery therapies'
-    ],
-    recommended: false,
-    color: 'bg-gray-700'
   }
 ];
 
@@ -139,7 +92,7 @@ const CourseCard = ({ course }) => (
 // Membership Plan Card Component
 const MembershipCard = ({ plan }) => (
   <div className={`rounded-xl overflow-hidden shadow-lg transition-all duration-300 border border-gray-700/50 flex flex-col transform hover:-translate-y-2 ${plan.recommended ? 'ring-2 ring-secondary relative z-10 scale-105' : ''}`}>
-    <div className={`${plan.color} px-6 py-8 text-center`}>
+    <div className={`${plan.color || 'bg-gray-700'} px-6 py-8 text-center`}>
       {plan.recommended && (
         <div className="bg-secondary text-xs font-bold text-white px-3 py-1 rounded-full absolute top-4 left-1/2 transform -translate-x-1/2">
           MOST POPULAR
@@ -147,26 +100,35 @@ const MembershipCard = ({ plan }) => (
       )}
       <h3 className="text-2xl font-bold text-white mt-4">{plan.name}</h3>
       <div className="flex items-center justify-center mt-2">
-        <span className="text-4xl font-bold text-white">${plan.price}</span>
-        <span className="text-gray-300 ml-2">/{plan.period}</span>
+        <span className="text-4xl font-bold text-white">${parseFloat(plan.price).toFixed(2)}</span>
+        <span className="text-gray-300 ml-2">/ month</span>
       </div>
     </div>
     
     <div className="p-6 bg-gray-800/80 backdrop-blur-sm flex-grow flex flex-col">
       <ul className="space-y-3 mb-6 flex-grow">
-        {plan.features.map((feature, index) => (
-          <li key={index} className="flex items-start text-gray-300">
-            <span className="text-secondary mr-2">✓</span>
-            {feature}
-          </li>
-        ))}
+        {plan.benefits ? (
+          plan.benefits.split('\n').map((benefit, index) => (
+            <li key={index} className="flex items-start text-gray-300">
+              <span className="text-secondary mr-2">✓</span>
+              {benefit.trim()}
+            </li>
+          ))
+        ) : (
+          plan.features && plan.features.map((feature, index) => (
+            <li key={index} className="flex items-start text-gray-300">
+              <span className="text-secondary mr-2">✓</span>
+              {feature}
+            </li>
+          ))
+        )}
       </ul>
       
       <Link 
         to="/membership"
-        className={`mt-auto flex items-center justify-center py-3 px-4 ${plan.recommended ? 'bg-secondary hover:bg-secondary/90' : 'bg-gray-700 hover:bg-primary'} rounded-lg text-white font-medium transition-colors duration-200`}
+        className={`mt-auto flex items-center justify-center py-3 px-4 ${plan.recommended ? 'bg-secondary hover:bg-secondary/90' : 'bg-primary hover:bg-blue-600'} rounded-lg text-white font-medium transition-colors duration-200`}
       >
-        Choose Plan
+        View Details
       </Link>
     </div>
   </div>
@@ -176,35 +138,42 @@ const MembershipCard = ({ plan }) => (
 const HomePage = () => {
   const { isAuthenticated } = useAuth();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+  const navigate = useNavigate();
+  const [membershipPlans, setMembershipPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   const heroSlides = [
     {
       title: "Transform Your Fitness Journey",
       subtitle: "Join our state-of-the-art facilities and expert-led programs",
-      image: "url('/images/hero-1.jpg')",
+      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&h=1080&fit=crop&q=80",
       cta: "Get Started"
     },
     {
       title: "Achieve Your Goals Faster",
       subtitle: "Personalized training and cutting-edge equipment",
-      image: "url('/images/hero-2.jpg')",
+      image: "https://images.unsplash.com/photo-1534258936925-c58bed479fcb?w=1920&h=1080&fit=crop&q=80",
       cta: "Join Today"
     },
     {
       title: "Community. Strength. Results.",
       subtitle: "Be part of a motivating fitness community",
-      image: "url('/images/hero-3.jpg')",
+      image: "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1920&h=1080&fit=crop&q=80",
       cta: "Explore Membership"
     }
   ];
   
-  // Auto-advance carousel every 6 seconds
+  // Auto-advance carousel every 6 seconds when not hovering
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+      if (!isHovering) {
+        setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+      }
     }, 6000);
     return () => clearInterval(interval);
-  }, [heroSlides.length]);
+  }, [heroSlides.length, isHovering]);
   
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
@@ -213,11 +182,63 @@ const HomePage = () => {
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
   };
+
+  // Handle navigation links
+  const handleNavigation = (path) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    } else {
+      navigate(path);
+    }
+  };
+  
+  // Fetch membership plans from backend
+  useEffect(() => {
+    const fetchMembershipPlans = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get('/api/orders/membership-plans/');
+        const plansData = Array.isArray(res.data) ? res.data :
+                         (res.data.results ? res.data.results : []);
+
+        // Filter active plans and sort them as needed (e.g., by price or a custom order)
+        const activePlans = plansData
+            .filter(plan => plan.is_active) // Only show active plans
+            .sort((a, b) => a.price - b.price); // Example: sort by price ascending
+
+        // Optional: Assign recommended status or color based on name or price if not coming from backend
+        const processedPlans = activePlans.map(plan => {
+            let recommended = false;
+            let color = 'bg-gray-700';
+            if (plan.name.toLowerCase().includes('premium')) {
+                recommended = true;
+                color = 'bg-primary'; // Or secondary based on your design
+            } else if (plan.name.toLowerCase().includes('elite')) {
+                color = 'bg-green-700'; // Example color for Elite
+            }
+            return { ...plan, recommended, color };
+        });
+
+        setMembershipPlans(processedPlans);
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to fetch membership plans for homepage:', err);
+        setError('Failed to load membership plans.');
+        setLoading(false);
+      }
+    };
+
+    fetchMembershipPlans();
+  }, []); // Empty dependency array means this runs once on mount
   
   return (
     <div>
       {/* Hero Section with Carousel */}
-      <section className="relative h-[600px] md:h-[700px] overflow-hidden">
+      <section 
+        className="relative h-[600px] md:h-[700px] overflow-hidden"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+      >
         {/* Background Slides */}
         {heroSlides.map((slide, index) => (
           <div 
@@ -225,7 +246,7 @@ const HomePage = () => {
             className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ${
               currentSlide === index ? 'opacity-100' : 'opacity-0'
             }`}
-            style={{ backgroundImage: slide.image || "url('https://images.unsplash.com/photo-1594737625785-a6cbdabd333c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')" }}
+            style={{ backgroundImage: `url(${slide.image})` }}
           >
             <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/70 to-transparent"></div>
           </div>
@@ -250,7 +271,7 @@ const HomePage = () => {
                   <ChevronRight className="ml-2 w-5 h-5" />
                 </Link>
                 <Link 
-                  to="/membership"
+                  to="/login"
                   className="bg-transparent text-white font-bold py-3 px-8 rounded-lg border border-white/30 hover:bg-white/10 transition-all duration-200"
                 >
                   View Plans
@@ -263,8 +284,9 @@ const HomePage = () => {
                   <button
                     key={index}
                     onClick={() => setCurrentSlide(index)}
-                    className={`h-1 rounded-full transition-all duration-300 ${
-                      currentSlide === index ? 'w-10 bg-primary' : 'w-5 bg-gray-500'
+                    onMouseEnter={() => setCurrentSlide(index)}
+                    className={`h-1 rounded-full transition-all duration-300 cursor-pointer ${
+                      currentSlide === index ? 'w-10 bg-primary' : 'w-5 bg-gray-500 hover:bg-gray-400'
                     }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
@@ -276,13 +298,13 @@ const HomePage = () => {
         
         {/* Navigation Arrows */}
         <button 
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white rounded-full p-2 hover:bg-primary transition-colors duration-200"
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white rounded-full p-2 hover:bg-primary transition-colors duration-200 cursor-pointer z-20"
           onClick={prevSlide}
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
         <button 
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white rounded-full p-2 hover:bg-primary transition-colors duration-200"
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white rounded-full p-2 hover:bg-primary transition-colors duration-200 cursor-pointer z-20"
           onClick={nextSlide}
         >
           <ChevronRight className="w-6 h-6" />
@@ -329,14 +351,14 @@ const HomePage = () => {
       </section>
       
       {/* Featured Courses */}
-      <section className="py-20 bg-gray-800">
+      <section id="courses" className="py-20 bg-gray-800">
         <div className="container mx-auto px-6">
           <div className="flex flex-wrap items-center justify-between mb-12">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">Featured Courses</h2>
               <p className="text-gray-400">Discover our most popular training programs</p>
             </div>
-            <Link to="/courses" className="inline-flex items-center text-primary hover:text-primary-light font-semibold">
+            <Link to="#courses" className="inline-flex items-center text-primary hover:text-primary-light font-semibold">
               View All Courses
               <ChevronRight className="ml-1 w-5 h-5" />
             </Link>
@@ -351,7 +373,7 @@ const HomePage = () => {
       </section>
       
       {/* Membership Section */}
-      <section className="py-20 bg-gray-900 relative overflow-hidden">
+      <section id="membership" className="py-20 bg-gray-900 relative overflow-hidden">
         {/* Background Design Elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
@@ -362,18 +384,26 @@ const HomePage = () => {
             <p className="text-gray-400">Choose the plan that fits your fitness journey</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {membershipPlans.map(plan => (
-              <MembershipCard key={plan.id} plan={plan} />
-            ))}
-          </div>
+          {loading ? (
+              <div className="text-center text-white"><div className="w-10 h-10 border-t-4 border-primary border-solid rounded-full animate-spin mx-auto"></div><p>Loading plans...</p></div>
+          ) : error ? (
+              <div className="text-center text-red-400"><AlertCircle className="w-6 h-6 mx-auto mb-2"/>{error}</div>
+          ) : membershipPlans.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {membershipPlans.map(plan => (
+                <MembershipCard key={plan.id} plan={plan} />
+              ))}
+            </div>
+          ) : (
+              <div className="text-center text-gray-400"><AlertCircle className="w-6 h-6 mx-auto mb-2"/>No membership plans available.</div>
+          )}
           
           <div className="mt-12 text-center">
             <Link 
               to="/membership" 
               className="inline-flex items-center text-primary hover:text-primary-light font-semibold"
             >
-              Compare All Plans
+              View All Plan Details
               <ChevronDown className="ml-1 w-5 h-5" />
             </Link>
           </div>
@@ -405,7 +435,7 @@ const HomePage = () => {
                   Sign Up Now
                 </Link>
                 <Link 
-                  to="/contact" 
+                  to="/login" 
                   className="bg-transparent text-white font-bold py-3 px-8 rounded-lg border border-white/30 hover:bg-white/10 transition-all duration-200"
                 >
                   Contact Us

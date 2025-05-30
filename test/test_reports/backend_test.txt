@@ -1,0 +1,49 @@
+=== Using SQLite for tests ===
+Found 16 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: common, corsheaders, messages, rest_framework, rest_framework_simplejwt, staticfiles
+  Apply all migrations: admin, auth, contenttypes, courses, orders, sessions, users
+Synchronizing apps without migrations:
+  Creating tables...
+    Creating table gym_uploaded_image
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying users.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying courses.0001_initial... OK
+  Applying courses.0002_alter_courseenrollment_unique_together... OK
+  Applying courses.0003_add_sample_courses... OK
+  Applying orders.0001_initial... OK
+  Applying orders.0002_order_user... OK
+  Applying orders.0003_alter_order_options_and_more... OK
+  Applying orders.0004_membershipplan_discount_percentage_and_more... OK
+  Applying orders.0005_remove_membershipplan_discount_percentage_and_more... OK
+  Applying orders.0006_remove_membershipplan_max_sessions_and_more... OK
+  Applying orders.0007_add_membership_plans... OK
+  Applying sessions.0001_initial... OK
+  Applying users.0002_alter_user_avatar... OK
+  Applying users.0003_user_membership_plan_id_user_membership_plan_name_and_more... OK
+  Applying users.0004_alter_user_options_alter_userprofile_options_and_more... OK
+  Applying users.0006_create_test_users... OK
+  Applying users.0007_userprofile_emergency_contact_and_more... OK
+  Applying users.0008_alter_user_role... OK
+  Applying users.0009_alter_user_membership_status_and_more... OK
+  Applying users.0010_remove_user_address_remove_user_birth_date_and_more... OK
+  Applying users.0011_alter_user_member_id_alter_user_membership_status_and_more... OK
+  Applying users.0012_user_address_user_birth_date_user_gender... OK

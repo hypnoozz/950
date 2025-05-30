@@ -2,7 +2,7 @@ from django.urls import path
 from .views import RegisterView, LoginView, LogoutView, AdminUserCreateView, AdminUserUpdateView
 from gym_api.users.views import CurrentUserView
 
-app_name = 'auth'
+app_name = 'gym_auth'
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),

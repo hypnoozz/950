@@ -37,7 +37,7 @@ const MainHeader = () => {
           <nav className="hidden md:flex space-x-2">
             <NavLink to="/" icon={HomeIcon}>Home</NavLink>
             <NavLink to="/courses" icon={Dumbbell}>Courses</NavLink>
-            <NavLink to="/schedules" icon={CalendarDays}>Schedules</NavLink>
+            <NavLink to="/courses/schedules" icon={CalendarDays}>Schedules</NavLink>
             <NavLink to="/membership" icon={Sparkles}>Membership</NavLink>
           </nav>
 

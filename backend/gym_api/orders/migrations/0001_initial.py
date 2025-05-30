@@ -3,7 +3,41 @@
 from django.db import migrations, models
 import django.db.models.deletion
 import uuid
+from django.conf import settings
 
+def create_membership_plans(apps, schema_editor):
+    MembershipPlan = apps.get_model('orders', 'MembershipPlan')
+    
+    # 创建月度会员计划
+    MembershipPlan.objects.create(
+        name='Monthly Membership',
+        description='Access to all courses for one month',
+        price=99.00,
+        duration_days=30,
+        is_active=True
+    )
+    
+    # 创建季度会员计划
+    MembershipPlan.objects.create(
+        name='Quarterly Membership',
+        description='Access to all courses for three months',
+        price=249.00,
+        duration_days=90,
+        is_active=True
+    )
+    
+    # 创建年度会员计划
+    MembershipPlan.objects.create(
+        name='Annual Membership',
+        description='Access to all courses for one year',
+        price=899.00,
+        duration_days=365,
+        is_active=True
+    )
+
+def remove_membership_plans(apps, schema_editor):
+    MembershipPlan = apps.get_model('orders', 'MembershipPlan')
+    MembershipPlan.objects.all().delete()
 
 class Migration(migrations.Migration):
 
@@ -11,6 +45,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('courses', '0001_initial'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
@@ -18,19 +53,17 @@ class Migration(migrations.Migration):
             name='MembershipPlan',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, verbose_name='套餐名称')),
-                ('plan_type', models.CharField(choices=[('monthly', '月卡'), ('quarterly', '季卡'), ('yearly', '年卡'), ('custom', '自定义')], max_length=20, verbose_name='套餐类型')),
-                ('duration', models.IntegerField(verbose_name='有效期(天)')),
-                ('price', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='价格')),
-                ('description', models.TextField(blank=True, null=True, verbose_name='套餐描述')),
-                ('benefits', models.TextField(blank=True, null=True, verbose_name='套餐福利')),
-                ('is_active', models.BooleanField(default=True, verbose_name='是否激活')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='创建时间')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='更新时间')),
+                ('name', models.CharField(max_length=100, verbose_name='Plan Name')),
+                ('description', models.TextField(verbose_name='Plan Description')),
+                ('price', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Price')),
+                ('duration_days', models.IntegerField(verbose_name='Duration (days)')),
+                ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
+                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Created At')),
+                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Updated At')),
             ],
             options={
-                'verbose_name': '会员套餐',
-                'verbose_name_plural': '会员套餐',
+                'verbose_name': 'Membership Plan',
+                'verbose_name_plural': 'Membership Plans',
                 'db_table': 'gym_membership_plan',
             },
         ),
@@ -38,42 +71,56 @@ class Migration(migrations.Migration):
             name='Order',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('order_id', models.CharField(default=uuid.uuid4, editable=False, max_length=50, unique=True, verbose_name='订单号')),
-                ('order_type', models.CharField(choices=[('membership', '会员套餐'), ('course', '课程'), ('product', '商品')], max_length=20, verbose_name='订单类型')),
-                ('status', models.CharField(choices=[('pending', '待支付'), ('paid', '已支付'), ('cancelled', '已取消'), ('refunded', '已退款')], default='pending', max_length=20, verbose_name='订单状态')),
-                ('total_amount', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='订单总金额')),
-                ('discount_amount', models.DecimalField(decimal_places=2, default=0, max_digits=10, verbose_name='优惠金额')),
-                ('actual_amount', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='实际支付金额')),
-                ('payment_method', models.CharField(blank=True, choices=[('wechat', '微信支付'), ('alipay', '支付宝'), ('cash', '现金'), ('card', '银行卡')], max_length=20, null=True, verbose_name='支付方式')),
-                ('payment_id', models.CharField(blank=True, max_length=100, null=True, verbose_name='支付交易号')),
-                ('paid_at', models.DateTimeField(blank=True, null=True, verbose_name='支付时间')),
-                ('remark', models.TextField(blank=True, null=True, verbose_name='备注')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='创建时间')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='更新时间')),
+                ('order_number', models.CharField(max_length=50, unique=True, verbose_name='Order Number')),
+                ('total_amount', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Total Amount')),
+                ('status', models.CharField(choices=[('pending', 'Pending'), ('paid', 'Paid'), ('cancelled', 'Cancelled'), ('refunded', 'Refunded')], default='pending', max_length=20, verbose_name='Status')),
+                ('payment_method', models.CharField(choices=[('credit_card', 'Credit Card'), ('debit_card', 'Debit Card'), ('paypal', 'PayPal')], max_length=20, verbose_name='Payment Method')),
+                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Created At')),
+                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Updated At')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='orders', to=settings.AUTH_USER_MODEL, verbose_name='User')),
             ],
             options={
-                'verbose_name': '订单',
-                'verbose_name_plural': '订单',
+                'verbose_name': 'Order',
+                'verbose_name_plural': 'Orders',
                 'db_table': 'gym_order',
-                'ordering': ['-created_at'],
             },
         ),
         migrations.CreateModel(
             name='OrderItem',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('item_name', models.CharField(max_length=200, verbose_name='商品名称')),
-                ('item_price', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='商品单价')),
-                ('quantity', models.IntegerField(default=1, verbose_name='数量')),
-                ('item_total', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='商品总价')),
-                ('course', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='order_items', to='courses.course', verbose_name='课程')),
-                ('membership_plan', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='order_items', to='orders.membershipplan', verbose_name='会员套餐')),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='orders.order', verbose_name='订单')),
+                ('item_type', models.CharField(choices=[('course', 'Course'), ('membership', 'Membership')], max_length=20, verbose_name='Item Type')),
+                ('item_id', models.IntegerField(verbose_name='Item ID')),
+                ('quantity', models.IntegerField(default=1, verbose_name='Quantity')),
+                ('price', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Price')),
+                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Created At')),
+                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Updated At')),
+                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='orders.order', verbose_name='Order')),
             ],
             options={
-                'verbose_name': '订单项',
-                'verbose_name_plural': '订单项',
+                'verbose_name': 'Order Item',
+                'verbose_name_plural': 'Order Items',
                 'db_table': 'gym_order_item',
             },
         ),
+        migrations.CreateModel(
+            name='Membership',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('start_date', models.DateTimeField(verbose_name='Start Date')),
+                ('end_date', models.DateTimeField(verbose_name='End Date')),
+                ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
+                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Created At')),
+                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Updated At')),
+                ('plan', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='memberships', to='orders.membershipplan', verbose_name='Plan')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='memberships', to=settings.AUTH_USER_MODEL, verbose_name='User')),
+            ],
+            options={
+                'verbose_name': 'Membership',
+                'verbose_name_plural': 'Memberships',
+                'db_table': 'gym_membership',
+            },
+        ),
+        # Add initial data
+        migrations.RunPython(create_membership_plans, remove_membership_plans),
     ]

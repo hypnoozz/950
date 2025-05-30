@@ -95,7 +95,7 @@ function App() {
         <Route path="profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
         <Route path="courses" element={<CoursesPage />} />
         <Route path="courses/:id" element={<CourseDetailPage />} />
-        <Route path="schedules" element={<SchedulesPage />} />
+        <Route path="courses/schedules" element={<SchedulesPage />} />
         <Route path="membership" element={<MembershipPage />} />
         <Route path="orders" element={<PrivateRoute><OrdersPage /></PrivateRoute>} />
         <Route path="orders/:id" element={<PrivateRoute><OrderDetailPage /></PrivateRoute>} />

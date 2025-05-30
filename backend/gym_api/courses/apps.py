@@ -4,5 +4,5 @@ from django.utils.translation import gettext_lazy as _
 class CoursesConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'gym_api.courses'
-    verbose_name = _('课程管理')
+    verbose_name = _('Course Management')
  

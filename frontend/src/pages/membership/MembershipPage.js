@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { message, Modal, Button, Spin } from 'antd';
+import { useAuth } from '../../context/AuthContext';
 
 const FeatureItem = ({ text, included }) => (
   <div className="flex items-start mb-3">
@@ -82,14 +83,15 @@ const PlanCard = ({ plan, billingPeriod, onSelect, userMembership, isLoggedIn })
   
   // 获取按钮文本和状态
   const getButtonText = () => {
-    if (!isLoggedIn) return "Please Login First";
+    // 无论是否登录，都显示"Select Plan"，但未登录时按钮会禁用并提示登录
     if (isPlanPurchased()) return "Current Plan";
     if (isAnyPlanPurchased()) return "Change Plan";
     return "Select Plan";
   };
   
   const isButtonDisabled = () => {
-    return !isLoggedIn || isPlanPurchased();
+    // 按钮在已购买当前套餐时禁用，未登录时不禁用但点击会提示并跳转注册
+    return isPlanPurchased();
   };
   
   return (
@@ -179,7 +181,8 @@ const MembershipPage = () => {
   const [userMembership, setUserMembership] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
-  
+  const { getAuthHeader } = useAuth();
+
   // 获取用户信息和会员状态
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -224,7 +227,7 @@ const MembershipPage = () => {
       try {
         setLoading(true);
         const res = await axios.get('/api/orders/membership-plans/');
-        const plansData = Array.isArray(res.data) ? res.data : 
+        const plansData = Array.isArray(res.data) ? res.data :
                          (res.data.results ? res.data.results : []);
         
         // Ensure all active plans are displayed
@@ -244,8 +247,8 @@ const MembershipPage = () => {
   
   const handlePlanSelect = (plan) => {
     if (!isLoggedIn) {
-      message.warning('请先登录');
-      navigate('/login');
+      message.warning('请先登录或注册');
+      navigate('/register'); // 未登录时跳转到注册页面
       return;
     }
     
@@ -291,7 +294,7 @@ const MembershipPage = () => {
       };
       
       // Send order to backend
-      const orderRes = await axios.post('/api/orders/', orderData);
+      const orderRes = await axios.post('/api/orders/', orderData, getAuthHeader());
       
       // Update user membership status
       // Note: In a real application, this step is usually handled by the backend

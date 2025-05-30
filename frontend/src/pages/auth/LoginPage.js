@@ -15,8 +15,8 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get the redirect path from location state or default to homepage
-  const from = location.state?.from?.pathname || '/';
+  // Get the redirect path from location state or default to profile page
+  const from = location.state?.from?.pathname || '/profile';
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,7 +45,7 @@ const LoginPage = () => {
       {/* Background elements */}
       <div 
         className="absolute inset-0 bg-cover bg-center z-0 opacity-25" 
-        style={{ backgroundImage: `url('/images/gym-background.jpg')` }}
+        style={{ backgroundImage: `url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80')` }}
       ></div>
       
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900/90 to-gray-800 z-10"></div>

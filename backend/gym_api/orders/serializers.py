@@ -19,8 +19,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = [
-            'id', 'order', 'membership_plan', 'course',
-            'item_name', 'item_price', 'quantity', 'item_total',
+            'id', 'order', 
+            'item_type', 'item_id', 'quantity', 'price', 'item_total',
         ]
         read_only_fields = ['id']
 
@@ -53,8 +53,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'order_type', 'total_amount', 'discount_amount',
-            'actual_amount', 'remark', 'items'
+            'total_amount', 
+            'items'
         ]
     
     def create(self, validated_data):
