@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { BrowserRouter } from 'react-router-dom';
+import { act } from 'react-dom/test-utils';
 import HomePage from '../pages/HomePage';
 
 // Mock useAuth hook
@@ -14,12 +15,14 @@ jest.mock('../context/AuthContext', () => ({
 }));
 
 describe('Home Page', () => {
-  test('renders home page content', () => {
-    render(
-      <BrowserRouter>
-        <HomePage />
-      </BrowserRouter>
-    );
+  test('renders home page content', async () => {
+    await act(async () => {
+      render(
+        <BrowserRouter>
+          <HomePage />
+        </BrowserRouter>
+      );
+    });
     
     // Check for main heading
     expect(screen.getByText(/Welcome to Our Gym/i)).toBeInTheDocument();

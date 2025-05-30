@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { BrowserRouter } from 'react-router-dom';
+import { act } from 'react-dom/test-utils';
 import RegisterPage from '../pages/auth/RegisterPage';
 
 // Mock useAuth hook
@@ -15,12 +16,14 @@ jest.mock('../context/AuthContext', () => ({
 }));
 
 describe('Register Page', () => {
-  test('renders register form', () => {
-    render(
-      <BrowserRouter>
-        <RegisterPage />
-      </BrowserRouter>
-    );
+  test('renders register form', async () => {
+    await act(async () => {
+      render(
+        <BrowserRouter>
+          <RegisterPage />
+        </BrowserRouter>
+      );
+    });
     
     // Check for essential form elements
     expect(screen.getByText(/Create an account/i)).toBeInTheDocument();
