@@ -1,30 +1,39 @@
 # Gym Management System
 
-> **Recommended Python version: 3.11 or 3.12**  
-> Python 3.13 may cause dependency installation issues (e.g., Pillow).
+A comprehensive gym management system built with React and Django.
 
-A comprehensive gym management system with user authentication, course management, and order processing.
+## Features
+
+- User authentication and authorization
+- Member profile management
+- Course management and scheduling
+- Admin dashboard for staff management
+
+## Tech Stack
+
+### Frontend
+- React 18
+- Material-UI
+- React Router
+- Axios
+- Redux Toolkit
+
+### Backend
+- Django 4.2
+- Django REST Framework
+- SQLite (default) / MySQL
+- JWT Authentication
 
 ## Prerequisites
 
-- Python 3.x
-- Node.js and npm
-- MySQL (optional, SQLite is used by default)
+- Node.js 18+
+- Python 3.9+
 
-## Environment Variables
+## Installation
 
-Create a `.env` file in the `backend` directory with the following variables:
+### Quick Start
 
-```env
-DEBUG=True
-SECRET_KEY=your-secret-key
-ALLOWED_HOSTS=localhost,127.0.0.1
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173
-```
-
-## Quick Start
-
-### For Mac/Linux Users
+#### For Mac/Linux Users
 ```bash
 # Make the setup script executable
 chmod +x setup.sh
@@ -33,7 +42,7 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
-### For Windows Users
+#### For Windows Users
 ```bash
 # Run the setup script
 setup.bat
@@ -45,78 +54,71 @@ The setup script will:
 3. Install frontend dependencies
 4. Build the frontend application
 5. Set up the database
-6. Start the development server
+6. Run database migrations
+7. Collect static files
+8. Start the development server
 
-Once complete, the application will be running at http://localhost:8000
+### Manual Installation
 
-## Project Structure
-
-```
-├── backend/                 # Django backend
-│   ├── gym_api/            # Main Django project
-│   │   ├── users/         # User management
-│   │   ├── courses/       # Course management
-│   │   ├── orders/        # Order processing
-│   │   ├── auth/          # Authentication
-│   │   └── common/        # Common utilities
-│   ├── gym_project/       # Django project settings
-│   ├── static/            # Static files
-│   ├── templates/         # HTML templates
-│   └── requirements.txt   # Python dependencies
-├── frontend/              # React frontend
-│   ├── src/              # Source code
-│   │   ├── components/   # React components
-│   │   ├── pages/       # Page components
-│   │   ├── context/     # React context
-│   │   └── utils/       # Utility functions
-│   └── package.json     # Node.js dependencies
-├── setup.sh             # Setup script for Mac/Linux
-└── setup.bat            # Setup script for Windows
+1. Clone the repository:
+```bash
+git clone https://github.com/hypnoozz/950.git
+cd 950
 ```
 
-## Features
+2. Set up the frontend:
+```bash
+cd frontend
+npm install --legacy-peer-deps  # Use this flag if you encounter dependency conflicts
+```
 
-- User authentication and authorization
-- Course management and scheduling
-- Membership plan management
-- Order processing
-- User profile management
-- Responsive frontend design
-- Admin dashboard
+3. Set up the backend:
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-## Development
+4. Set up the database and static files:
+```bash
+cd backend
+python manage.py migrate  # Create database tables
+python manage.py collectstatic --noinput  # Collect static files (CSS, JS, images) - only needed once
+```
 
-### Backend Development
+Once complete, the application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000/api
+- Django Admin: http://localhost:8000/admin
+
+## Running the Application
+
+1. Start the backend server:
 ```bash
 cd backend
 python manage.py runserver
-```
 
-### Frontend Development
+2. Start the frontend development server:
 ```bash
 cd frontend
 npm start
 ```
 
-## Database
+## Port Configuration
 
-By default, the application uses SQLite for development and testing. For production, configure MySQL in your environment variables.
+The system uses the following ports:
+- 3000: Frontend React application (development server)
+- 8000: Backend Django server (API and admin interface)
 
 ## Testing
+### Frontend Tests
+- Located in `frontend/src/tests/`
+- Run with: `npm test`
 
-Run the tests using:
-```bash
-cd backend
-python manage.py test
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+### Backend Tests
+- Located in `backend/gym_api/tests/`
+- Run with: `python manage.py test`
 
 ## License
 
